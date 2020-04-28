@@ -1,4 +1,3 @@
-
 local js = panorama['open']()
 local MyPersonaAPI, LobbyAPI, PartyListAPI, FriendsListAPI = js['MyPersonaAPI'], js['LobbyAPI'], js['PartyListAPI'], js['FriendsListAPI']
 local L = {}
@@ -9,17 +8,17 @@ if (not LobbyAPI.IsSessionActive()) then
 end
 
 local events = panorama['loadstring']([[
-    var doSearchMessages = function() {};
-    var waitForSearchingEventHandler;
+    var waitForSearchingEventHandler = $.RegisterForUnhandledEvent('PanoramaComponent_Lobby_MatchmakingSessionUpdate', function() {});
 
     return {
-        stop: function() {
-            if (waitForSearchingEventHandler) {
-                $.UnregisterForUnhandledEvent('PanoramaComponent_Lobby_MatchmakingSessionUpdate', waitForSearchingEventHandler);
-            }
+        start: function(callback) {
+            waitForSearchingEventHandler = $.RegisterForUnhandledEvent('PanoramaComponent_Lobby_MatchmakingSessionUpdate', callback);
         },
-        start: function() {
-            waitForSearchingEventHandler = $.RegisterForUnhandledEvent( 'PanoramaComponent_Lobby_MatchmakingSessionUpdate', doSearchMessages);
+        stop: function(event) {
+            $.UnregisterForUnhandledEvent('PanoramaComponent_Lobby_MatchmakingSessionUpdate', event);
+        },
+        get_event: function() {
+            return waitForSearchingEventHandler;
         }
     }
 ]])()
@@ -172,30 +171,26 @@ L['Funcs'] = {
         local autoStopQueueSilent = ui['get'](L['UI']['StopQueue']['Hidden']['Silent']['Element'])
         local target = ui['get'](L['UI']['Target']['Element'])
 
-        --events.stop()
-        -- re do when we can handle panorama events in lua 
-        panorama['loadstring']([[
-            if (waitForSearchingEventHandler) {
-                $.UnregisterForUnhandledEvent( 'PanoramaComponent_Lobby_MatchmakingSessionUpdate', waitForSearchingEventHandler);
-            }
+        events.stop(events.get_event())
 
-            var doSearchMessages = function(msg) {
-                if (LobbyAPI.GetMatchmakingStatusString() == "#SFUI_QMM_State_find_searching") {
-                    if (]] .. tostring(trustOnSearch) .. [[ == true) {
+        events.start(panorama['loadstring']([[
+            return function() {
+                if (LobbyAPI.GetMatchmakingStatusString() == '#SFUI_QMM_State_find_searching') {
+                    if (]] .. tostring(trustOnSearch) .. [[) {
                         let trustFactorData = ]] .. tfArrToStr .. [[
                         let sendTrustMsg = false;
-            
+
                         for (let i = 0; i < trustFactorData.length; i++) {
                             let trustOption = trustFactorData[i];
             
-                            if (trustOption != "-") {
+                            if (trustOption != '-') {
                                 let userXUID = PartyListAPI.GetXuidByIndex(i);
 
-                                if (trustOption == "Red") {sendTrustMsg = true;}
+                                if (trustOption === 'Red' || trustOption === 'Yellow') {sendTrustMsg = true;}
                 
-                                let msgType = (trustOption == "Red") ? "ChatReportError" : "ChatReportYellow";
-                                let msgCol = (trustOption == "Red") ? "error" : "yellow";
-                                let trustMessage = (trustOption == "Red") ? "X_AccountWarningTrustMajor" : "X_AccountWarningTrustMinor";
+                                let msgType = (trustOption === 'Red') ? 'ChatReportError' : 'ChatReportYellow';
+                                let msgCol = (trustOption === 'Red') ? "error" : "yellow";
+                                let trustMessage = (trustOption === 'Red') ? 'X_AccountWarningTrustMajor' : 'X_AccountWarningTrustMinor';
                 
                                 PartyListAPI.SessionCommand(`Game::${msgType}`, `run all xuid ${userXUID} ${msgCol} ]] .. errPrefix .. [[${trustMessage}`);
                             }
@@ -206,10 +201,10 @@ L['Funcs'] = {
                         }
                     }
     
-                    if (]] .. tostring(autoStopQueue) .. [[ == true) {
+                    if (]] .. tostring(autoStopQueue) .. [[) {
                         let target = (LobbyAPI.BIsHost()) ? PartyListAPI.GetXuidByIndex(]] .. (target - 1) .. [[) : MyPersonaAPI.GetXuid();
     
-                        if (]] .. tostring(autoStopQueueSilent) .. [[ == false) {
+                        if (!]] .. tostring(autoStopQueueSilent) .. [[) {
                             PartyListAPI.SessionCommand('Game::ChatReportError', `run all xuid ${target} error ]] .. errPrefix .. autoStopMsg .. [[`);
                         }
     
@@ -217,11 +212,7 @@ L['Funcs'] = {
                     }
                 }
             }
-
-            var waitForSearchingEventHandler = $.RegisterForUnhandledEvent( 'PanoramaComponent_Lobby_MatchmakingSessionUpdate', doSearchMessages);
-        ]])()
-
-        --events.start()
+        ]])())
     end,
     ['ClearPopups'] = function()
         panorama.loadstring('UiToolkitAPI.CloseAllVisiblePopups()', 'CSGOMainMenu')()
@@ -301,6 +292,10 @@ L['Funcs'] = {
         if (ui['get'](L['UI']['LoopMessages']['Element']) and not L['Funcs']['table.HasValue'](L['Data']['BadMessages'], msgType)) then
             for i = 1, ui['get'](baseLoop['Amt']) do
                 L['Funcs']['ExecuteMessage']()
+
+                if (not ui['get'](L['UI']['LoopMessages']['Element'])) then
+                    break
+                end
             end
 
             client['delay_call'](ui['get'](baseLoop['Delay']) / 1000, L['Funcs']['HandleMessage'])
@@ -428,6 +423,10 @@ L['UI'] = {
         ['Callback'] = L['Funcs']['HandleMessage']
     }
 }
+
+client['set_event_callback']('shutdown', function()
+    events.stop(events.get_event())
+end)
 
 L['Funcs']['BuildFuncs']()
 
