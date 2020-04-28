@@ -332,7 +332,7 @@ S['UI'] = {
         ['Callback'] = function(e)
             local comboRanks = S['Data']['ComboRanks']
             local comboCols = S['Data']['ComboColours']
-            local rand = client.random_int
+            local rand = client['random_int']
 
             for _, v in pairs(S['Data']['PlayerData']) do
                 v['Rank'] = comboRanks[rand(1, #comboRanks)]
@@ -357,8 +357,15 @@ S['UI'] = {
 S['Funcs']['BuildJS']()
 S['Funcs']['UpdateUI']()
 
-client.set_event_callback('shutdown', function()
+client['set_event_callback']('shutdown', function()
     events.stop(events.get_event())
+end)
+
+client['set_event_callback']('console_input', function(text)
+    if (text:sub(1, 10) == 'medal_list') then
+        print('List of medals: https://tf2b.com/itemlist.php?gid=730')
+        return true
+    end
 end)
 
 for _, entry in pairs(S['UI']) do
