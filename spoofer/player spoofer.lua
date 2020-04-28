@@ -8,25 +8,24 @@ if (not LobbyAPI.IsSessionActive()) then
 end
 
 local events = panorama['loadstring']([[
-    var updateMessage = '';
     var waitForPlayerUpdateEventHandler = $.RegisterForUnhandledEvent( "PanoramaComponent_Lobby_PlayerUpdated", function(xuid) {});
 
     return {
         start: function(message) {
             PartyListAPI.UpdateSessionSettings(message);
 
-            var waitForPlayerUpdateEventHandler = $.RegisterForUnhandledEvent( "PanoramaComponent_Lobby_PlayerUpdated", function(xuid) {
+            waitForPlayerUpdateEventHandler = $.RegisterForUnhandledEvent( "PanoramaComponent_Lobby_PlayerUpdated", function(xuid) {
                 PartyListAPI.UpdateSessionSettings(message);
             });
         },
-        stop: function() {
-            var updateMessage = '';
-            $.UnregisterForUnhandledEvent('PanoramaComponent_Lobby_MatchmakingSessionUpdate', waitForPlayerUpdateEventHandler);
+        stop: function(event) {
+            $.UnregisterForUnhandledEvent('PanoramaComponent_Lobby_MatchmakingSessionUpdate', event);
+        },
+        get_event: function() {
+            return waitForPlayerUpdateEventHandler
         }
     }
 ]])()
-
-events.start('')
 
 S['Config'] = {
     ['Panel'] = 'LUA',
@@ -160,13 +159,13 @@ S['Funcs'] = {
     ['BuildJS'] = function()
         local updateMsg = ''
 
-        events.stop()
-    
+        events.stop(events.get_event())
+
         for i = 0, #S['Data']['PlayerData'] do
-            local ply = S['Data']['PlayerData']
-    
+            local ply = S['Data']['PlayerData'][i]
+
             if (ply['Enable']) then
-                if (PartyListAPI.GetCount() >= 2 and PartyListAPI.GetXuidByIndex(i) ~= 0) then
+                if (PartyListAPI.GetCount() > 1 and PartyListAPI.GetXuidByIndex(i) ~= 0) then
                     local machineName = 'Update/Members/machine' .. i ..'/player0/game/'
 
                     if (ply['Rank'] ~= '-') then
@@ -183,7 +182,7 @@ S['Funcs'] = {
                         updateMsg = updateMsg .. machineName .. 'medals [!' .. ply['Medal'] .. '][^' .. ply['Medal'] .. ' '
                     end
 
-                    updateMsg = updateMsg .. machineName + 'commends [f' .. ply['Commends']['Friendly'] .. '][t' .. ply['Commends']['Teacher'] .. '][l' .. ply['Commends']['Leader'] .. '] ';
+                    updateMsg = updateMsg .. machineName .. 'commends [f' .. ply['Commends']['Friendly'] .. '][t' .. ply['Commends']['Teacher'] .. '][l' .. ply['Commends']['Leader'] .. '] ';
 
                     if (ply['Colour'] ~= '-') then
                         updateMsg = updateMsg .. machineName .. 'teamcolor ' .. S['Data']['Colours'][ply['Colour']] .. ' '
@@ -294,7 +293,7 @@ S['UI'] = {
             local commends = ui['get'](S['UI']['Amt']['Element'])
 
             if (ply['Commends'][commendType] ~= commends) then
-                ui['set'](commends, ply['Commends'][commendType])
+                ui['set'](S['UI']['Amt']['Element'], ply['Commends'][commendType])
             end
         end
     },
@@ -359,7 +358,7 @@ S['Funcs']['BuildJS']()
 S['Funcs']['UpdateUI']()
 
 client.set_event_callback('shutdown', function()
-	events.stop()
+    events.stop(events.get_event())
 end)
 
 for _, entry in pairs(S['UI']) do
