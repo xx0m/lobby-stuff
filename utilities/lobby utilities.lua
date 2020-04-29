@@ -4,9 +4,11 @@ local L = {}
 
 L['Get'] = ui['get']
 L['Set'] = ui['set']
+
 L['Delay'] = client['delay_call']
 L['RandInt'] = client['random_int']
 L['RegisterEvent'] = client['set_event_callback']
+
 L['SetVisible'] = ui['set_visible']
 L['SetCallback'] = ui['set_callback']
 L['Button'] = ui['new_button']
@@ -15,6 +17,7 @@ L['Combobox'] = ui['new_combobox']
 L['Textbox'] = ui['new_textbox']
 L['Checkbox'] = ui['new_checkbox']
 L['ListBox'] = ui['new_listbox']
+L['Label'] = ui['new_label']
 
 if (not LobbyAPI.IsSessionActive()) then
 	LobbyAPI.CreateSession()
@@ -320,6 +323,11 @@ L['Funcs'] = {
 }
 
 L['UI'] = {
+	['lblStart'] = {
+		['Element'] = L['Label'](L['Config']['Panel'], L['Config']['Side'], '---------------[Start Lobby Utils]--------------'),
+		['Callback'] = function(e) end
+	},
+
 	['Target'] = {
 		['Element'] = L['Slider'](L['Config']['Panel'], L['Config']['Side'], 'Target Player', 1, 5, 0),
 		['Callback'] = function(e)
@@ -433,6 +441,11 @@ L['UI'] = {
 	['Execute Message'] = {
 		['Element'] = L['Button'](L['Config']['Panel'], L['Config']['Side'], 'Execute Message', function(e) return end),
 		['Callback'] = L['Funcs']['HandleMessage']
+	},
+
+	['lblEnd'] = {
+		['Element'] = L['Label'](L['Config']['Panel'], L['Config']['Side'], '---------------[End Lobby Utils]----------------'),
+		['Callback'] = function(e) end
 	}
 }
 
