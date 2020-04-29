@@ -166,26 +166,26 @@ S['Funcs'] = {
 
             if (ply['Enable']) then
                 if (PartyListAPI.GetCount() > 1 and PartyListAPI.GetXuidByIndex(i) ~= 0) then
-                    local machineName = 'Update/Members/machine' .. i ..'/player0/game/'
+                    local machineName = string.format('Update/Members/machine%s/player0/game/', i)
 
                     if (ply['Rank'] ~= '-') then
-                        updateMsg = updateMsg .. machineName .. 'ranking ' .. S['Data']['Ranks'][ply['Rank']] .. ' '
+                        updateMsg = string.format('%s%sranking %s ', updateMsg, machineName, S['Data']['Ranks'][ply['Rank']])
                     end
 
                     if (ply['Level'] ~= '-') then
-                        updateMsg = updateMsg .. machineName .. 'level ' .. S['Data']['Ranks'][ply['Rank']] .. ' '
+                        updateMsg = string.format('%s%slevel %s ', updateMsg, machineName, S['Data']['Ranks'][ply['Rank']])
                     end
 
-                    updateMsg = updateMsg .. machineName .. 'prime ' .. (ply['Prime'] and '1' or '0') .. ' '
+                    updateMsg = string.format('%s%sprime %s', updateMsg, machineName, (ply['Prime'] and '1' or '0'))
 
                     if (ply['Medal'] ~= nil) then
-                        updateMsg = updateMsg .. machineName .. 'medals [!' .. ply['Medal'] .. '][^' .. ply['Medal'] .. ' '
+                        updateMsg = string.format('%s%smedals [!%s][^%s] ', updateMsg, machineName, ply['Medal'], ply['Medal'])
                     end
 
-                    updateMsg = updateMsg .. machineName .. 'commends [f' .. ply['Commends']['Friendly'] .. '][t' .. ply['Commends']['Teacher'] .. '][l' .. ply['Commends']['Leader'] .. '] ';
+                    updateMsg = string.format('%s%scommends [f%s][t%s][l%s] ', updateMsg, machineName, ply['Commends']['Friendly'], ply['Commends']['Teacher']. ply['Commends']['Leader']);
 
                     if (ply['Colour'] ~= '-') then
-                        updateMsg = updateMsg .. machineName .. 'teamcolor ' .. S['Data']['Colours'][ply['Colour']] .. ' '
+                        updateMsg = string.format('%s%steamcolor %s ', updateMsg, machineName, S['Data']['Colours'][ply['Colour']])
                     end
                 end
             end
