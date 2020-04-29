@@ -4,9 +4,11 @@ local S = {}
 
 S['Get'] = ui['get']
 S['Set'] = ui['set']
+
 S['Delay'] = client['delay_call']
 S['RandInt'] = client['random_int']
 S['RegisterEvent'] = client['set_event_callback']
+
 S['Visible'] = ui['set_visible']
 S['SetCallback'] = ui['set_callback']
 S['Button'] = ui['new_button']
@@ -218,6 +220,11 @@ S['Funcs'] = {
 }
 
 S['UI'] = {
+	['lblStart'] = {
+		['Element'] = S['Label'](S['Config']['Panel'], S['Config']['Side'], '-------------[Start Player Spoofer]------------'),
+		['Callback'] = function(e) end
+	},
+
 	['Target'] = {
 		['Element'] = S['Slider'](S['Config']['Panel'], S['Config']['Side'], 'Target Player', 1, 5, 0),
 		['Callback'] = S['Funcs']['UpdateUI']
@@ -373,6 +380,11 @@ S['UI'] = {
 			S['Funcs']['BuildJS']()
 			S['Funcs']['UpdateUI']()
 		end
+	},
+
+	['lblEnd'] = {
+		['Element'] = S['Label'](S['Config']['Panel'], S['Config']['Side'], '-------------[End Player Spoofer]-------------'),
+		['Callback'] = function(e) end
 	}
 }
 
