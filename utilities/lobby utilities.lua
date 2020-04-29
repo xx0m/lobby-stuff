@@ -24,21 +24,24 @@ if (not LobbyAPI.IsSessionActive()) then
 	PartyListAPI.SessionCommand('MakeOnline', '')
 end
 
-local events = panorama['loadstring']([[
+panorama['loadstring']([[
 	var waitForSearchingEventHandler = $.RegisterForUnhandledEvent('PanoramaComponent_Lobby_MatchmakingSessionUpdate', function() {});
+]])()
 
+local events = panorama['loadstring']([[
 	return {
 		start: function(callback) {
 			waitForSearchingEventHandler = $.RegisterForUnhandledEvent('PanoramaComponent_Lobby_MatchmakingSessionUpdate', callback);
 		},
-		stop: function(event) {
-			$.UnregisterForUnhandledEvent('PanoramaComponent_Lobby_MatchmakingSessionUpdate', event);
-		},
-		get_event: function() {
-			return waitForSearchingEventHandler;
+		stop: function() {
+			$.UnregisterForUnhandledEvent('PanoramaComponent_Lobby_MatchmakingSessionUpdate', waitForSearchingEventHandler);
 		}
 	}
 ]])()
+
+-- jank asf
+events.start(panorama['loadstring']([[return function() {}]])())
+events.stop()
 
 L['Config'] = {
 	['Panel'] = 'LUA',
@@ -188,7 +191,7 @@ L['Funcs'] = {
 		local autoStopQueueSilent = L['Get'](L['UI']['StopQueue']['Hidden']['Silent']['Element'])
 		local target = L['Get'](L['UI']['Target']['Element'])
 
-		events.stop(events.get_event())
+		events.stop()
 
 		events.start(panorama['loadstring'](string.format([[
 			return function() {
@@ -450,7 +453,7 @@ L['UI'] = {
 }
 
 L['RegisterEvent']('shutdown', function()
-	events.stop(events.get_event())
+	events.stop()
 end)
 
 L['Funcs']['BuildFuncs']()
