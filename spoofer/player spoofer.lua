@@ -22,13 +22,13 @@ if (not LobbyAPI.IsSessionActive()) then
 end
 
 local events = panorama['loadstring']([[
-	var waitForPlayerUpdateEventHandler = $.RegisterForUnhandledEvent( "PanoramaComponent_Lobby_PlayerUpdated", function(xuid) {});
+	var waitForPlayerUpdateEventHandler = $.RegisterForUnhandledEvent('PanoramaComponent_Lobby_PlayerUpdated', function(xuid) {});
 
 	return {
 		start: function(message) {
 			PartyListAPI.UpdateSessionSettings(message);
 
-			waitForPlayerUpdateEventHandler = $.RegisterForUnhandledEvent( "PanoramaComponent_Lobby_PlayerUpdated", function(xuid) {
+			waitForPlayerUpdateEventHandler = $.RegisterForUnhandledEvent('PanoramaComponent_Lobby_PlayerUpdated', function(xuid) {
 				PartyListAPI.UpdateSessionSettings(message);
 			});
 		},
