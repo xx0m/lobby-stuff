@@ -36,16 +36,15 @@ local events = panorama['loadstring']([[
 				PartyListAPI.UpdateSessionSettings(message);
 			});
 		},
-		stop: function(event) {
-			$.UnregisterForUnhandledEvent('PanoramaComponent_Lobby_MatchmakingSessionUpdate', event);
-		},
-		get_event: function() {
-			return waitForPlayerUpdateEventHandler;
+		stop: function() {
+			$.UnregisterForUnhandledEvent('PanoramaComponent_Lobby_MatchmakingSessionUpdate', waitForPlayerUpdateEventHandler);
 		}
 	}
 ]])()
 
+-- jank asf
 events.start('')
+events.stop()
 
 S['Config'] = {
 	['Panel'] = 'LUA',
@@ -180,7 +179,7 @@ S['Funcs'] = {
 		local updateMsg = ''
 
 		if (not GameStateAPI.IsLocalPlayerPlayingMatch()) then
-			events.stop(events.get_event())
+			events.stop()
 
 			for i = 0, #S['Data']['PlayerData'] do
 				local ply = S['Data']['PlayerData'][i]
@@ -214,7 +213,7 @@ S['Funcs'] = {
 
 			events.start(updateMsg)
 		else
-			events.stop(events.get_event())
+			events.stop()
 		end
 	end
 }
@@ -392,7 +391,7 @@ S['Funcs']['BuildJS']()
 S['Funcs']['UpdateUI']()
 
 S['RegisterEvent']('shutdown', function()
-	events.stop(events.get_event())
+	events.stop()
 end)
 
 S['RegisterEvent']('console_input', function(text)
