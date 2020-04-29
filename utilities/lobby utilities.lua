@@ -154,10 +154,10 @@ L['Funcs'] = {
         local str = '['
 
         for _, v in pairs(L['Data']['Targets']) do
-            str = str .. '\'' .. v .. '\','
+            str = string.format('%s\'%s\',', str, v)
         end
 
-        return str .. '];'
+        return string.format('%s];', str)
     end,
     ['GetRandomErrorMessage'] = function()
         return L['Chat']['Errors'][client['random_int'](1, #L['Chat']['Errors'])]
@@ -173,11 +173,11 @@ L['Funcs'] = {
 
         events.stop(events.get_event())
 
-        events.start(panorama['loadstring']([[
+        events.start(panorama['loadstring'](string.format([[
             return function() {
                 if (LobbyAPI.GetMatchmakingStatusString() == '#SFUI_QMM_State_find_searching') {
-                    if (]] .. tostring(trustOnSearch) .. [[) {
-                        let trustFactorData = ]] .. tfArrToStr .. [[
+                    if (%s) {
+                        let trustFactorData = %s
                         let sendTrustMsg = false;
 
                         for (let i = 0; i < trustFactorData.length; i++) {
@@ -192,27 +192,27 @@ L['Funcs'] = {
                                 let msgCol = (trustOption === 'Red') ? "error" : "yellow";
                                 let trustMessage = (trustOption === 'Red') ? 'X_AccountWarningTrustMajor' : 'X_AccountWarningTrustMinor';
                 
-                                PartyListAPI.SessionCommand(`Game::${msgType}`, `run all xuid ${userXUID} ${msgCol} ]] .. errPrefix .. [[${trustMessage}`);
+                                PartyListAPI.SessionCommand(`Game::${msgType}`, `run all xuid ${userXUID} ${msgCol} %s${trustMessage}`);
                             }
                         }
                 
                         if (sendTrustMsg) {
-                            PartyListAPI.SessionCommand('Game::ChatReportError', `run all xuid ${MyPersonaAPI.GetXuid()} error ]] .. errPrefix .. [[X_AccountWarningTrustMajor_Summary `);
+                            PartyListAPI.SessionCommand('Game::ChatReportError', `run all xuid ${MyPersonaAPI.GetXuid()} error %sX_AccountWarningTrustMajor_Summary `);
                         }
                     }
     
-                    if (]] .. tostring(autoStopQueue) .. [[) {
-                        let target = (LobbyAPI.BIsHost()) ? PartyListAPI.GetXuidByIndex(]] .. (target - 1) .. [[) : MyPersonaAPI.GetXuid();
+                    if (%s) {
+                        let target = (LobbyAPI.BIsHost()) ? PartyListAPI.GetXuidByIndex(%s) : MyPersonaAPI.GetXuid();
     
-                        if (!]] .. tostring(autoStopQueueSilent) .. [[) {
-                            PartyListAPI.SessionCommand('Game::ChatReportError', `run all xuid ${target} error ]] .. errPrefix .. autoStopMsg .. [[`);
+                        if (!%s) {
+                            PartyListAPI.SessionCommand('Game::ChatReportError', `run all xuid ${target} error %s%s`);
                         }
     
                         LobbyAPI.StopMatchmaking();
                     }
                 }
             }
-        ]])())
+        ]], tostring(trustOnSearch), tfArrToStr, errPrefix, errPrefix, tostring(autoStopQueue), (target - 1), tostring(autoStopQueueSilent), errPrefix, autoStopMsg                 ) )())
     end,
     ['ClearPopups'] = function()
         panorama.loadstring('UiToolkitAPI.CloseAllVisiblePopups()', 'CSGOMainMenu')()
@@ -224,30 +224,30 @@ L['Funcs'] = {
         local target = LobbyAPI.BIsHost() and PartyListAPI.GetXuidByIndex(ui['get'](L['UI']['Target']['Element']) - 1) or MyPersonaAPI.GetXuid()
 
         if (msgType == 'Chat') then
-            msg = msg .. 'Chat'
+            msg = string.format('%sChat', msg)
             other = 'chat'
             extra = ui['get'](baseMsgType['Hidden']['Text']):gsub(' ', ' ') -- if we dont replace regular space with invisible character we cant have spaces in msg :^(
         elseif (msgType == 'Error') then
             other = ui['get'](baseMsgType['Hidden']['Colour'])
 
             if (other == 'Red') then
-                msg = msg .. 'ChatReportError'
+                msg = string.format('%sChatReportError', msg)
                 other = 'error'
             else
-                msg = msg .. 'ChatReport' .. other
+                msg = string.format('%sChatReport%s', msg, other)
 
                 other = other:lower()
             end
 
-            extra = extra .. L['Chat']['ErrorPrefix']
+            extra = string.format('%s%s', extra, L['Chat']['ErrorPrefix'])
 
             if (ui['get'](baseMsgType['Hidden']['RandErr']['Element'])) then
-                extra = extra .. L['Funcs']['GetRandomErrorMessage']()
+                extra = string.format('%s%s', extra, L['Funcs']['GetRandomErrorMessage']())
             else
-                extra = extra .. L['Chat']['Errors'][ ui['get'](baseMsgType['Hidden']['ErrorList']) + 1 ]
+                extra = string.format('%s%s', extra, L['Chat']['Errors'][ ui['get'](baseMsgType['Hidden']['ErrorList']) + 1 ])
             end
         elseif (msgType == 'Invite') then
-            msg = msg .. 'ChatInviteMessage'
+            msg = string.format('%sChatInviteMessage', msg)
             target = MyPersonaAPI.GetXuid()
             other = 'friend'
             extra = FriendsListAPI.GetXuidByIndex(client.random_int(1, FriendsListAPI.GetCount() - 1))
@@ -257,7 +257,7 @@ L['Funcs'] = {
 
             return
         elseif (msgType == 'Popup Window') then
-            msg = msg .. 'HostEndGamePlayAgain'
+            msg = string.format('%sHostEndGamePlayAgain', msg)
         elseif (msgType == 'Ear Rape [1]') then
             for i = 1, ui['get'](L['UI']['LoopMessages']['Hidden']['Amt']) do
                 LobbyAPI.StartMatchmaking( "", "", "", "" )
@@ -267,13 +267,13 @@ L['Funcs'] = {
             return
         elseif (msgType == 'Ear Rape [2]') then
             for i = 1, ui['get'](L['UI']['LoopMessages']['Hidden']['Amt']) do
-                PartyListAPI.SessionCommand('Game::Chat', 'run all xuid ' .. MyPersonaAPI.GetXuid() .. ' name ' .. MyPersonaAPI.GetName() .. ' chat ')
+                PartyListAPI.SessionCommand('Game::Chat', string.format('run all xuid %s name %s chat ', MyPersonaAPI.GetXuid(), MyPersonaAPI.GetName()))
             end
 
             return
         else -- must be mass pop up
             for i = 1, ui['get'](L['UI']['LoopMessages']['Hidden']['Amt']) do
-                PartyListAPI.SessionCommand('Game::HostEndGamePlayAgain', 'run all xuid ' .. MyPersonaAPI.GetXuid())
+                PartyListAPI.SessionCommand('Game::HostEndGamePlayAgain', string.format('run all xuid %s', MyPersonaAPI.GetXuid()))
             end
 
             client['delay_call'](0.5, function()
@@ -283,7 +283,7 @@ L['Funcs'] = {
             return
         end
 
-        PartyListAPI.SessionCommand(msg, 'run all xuid ' .. target .. (#other > 1 and ' ' .. other or '') .. (#extra > 1 and ' ' .. extra or ''))
+        PartyListAPI.SessionCommand(msg, string.format('run all xuid %s %s %s', target, (#other > 1 and ' ' .. other or ''), (#extra > 1 and ' ' .. extra or '')))
     end,
     ['HandleMessage'] = function()
         local baseLoop = L['UI']['LoopMessages']['Hidden']
