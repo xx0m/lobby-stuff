@@ -2,6 +2,19 @@ local js = panorama['open']()
 local MyPersonaAPI, LobbyAPI, PartyListAPI, FriendsListAPI = js['MyPersonaAPI'], js['LobbyAPI'], js['PartyListAPI'], js['FriendsListAPI']
 local S = {}
 
+S['Get'] = ui['get']
+S['Set'] = ui['set']
+S['Delay'] = client['delay_call']
+S['RandInt'] = client['random_int']
+S['RegisterEvent'] = client['set_event_callback']
+S['Visible'] = ui['set_visible']
+S['SetCallback'] = ui['set_callback']
+S['Button'] = ui['new_button']
+S['Slider'] = ui['new_slider']
+S['Combobox'] = ui['new_combobox']
+S['Textbox'] = ui['new_textbox']
+S['Checkbox'] = ui['new_checkbox']
+
 if (not LobbyAPI.IsSessionActive()) then
     LobbyAPI.CreateSession()
     PartyListAPI.SessionCommand('MakeOnline', '')
@@ -146,15 +159,15 @@ S['Funcs'] = {
         local base = S['UI']
         local commendType = ui['get'](base['Commend']['Element'])
 
-        ui['set'](base['Enable']['Element'], ply['Enable'])
-        ui['set'](base['Prime']['Element'], ply['Prime'])
-        ui['set'](base['Rank']['Element'], ply['Rank'])
-        ui['set'](base['Level']['Element'], ply['Level'])
-        ui['set'](base['Colour']['Element'], ply['Colour'])
-        ui['set'](base['Medal']['Element'], ply['Medal'])
+        S['Set'](base['Enable']['Element'], ply['Enable'])
+        S['Set'](base['Prime']['Element'], ply['Prime'])
+        S['Set'](base['Rank']['Element'], ply['Rank'])
+        S['Set'](base['Level']['Element'], ply['Level'])
+        S['Set'](base['Colour']['Element'], ply['Colour'])
+        S['Set'](base['Medal']['Element'], ply['Medal'])
 
-        ui['set'](base['Commend']['Element'], commendType)
-        ui['set'](base['Amt']['Element'], ply['Commends'][commendType])
+        S['Set'](base['Commend']['Element'], commendType)
+        S['Set'](base['Amt']['Element'], ply['Commends'][commendType])
     end,
     ['BuildJS'] = function()
         local updateMsg = ''
@@ -197,12 +210,12 @@ S['Funcs'] = {
 
 S['UI'] = {
     ['Target'] = {
-        ['Element'] = ui['new_slider'](S['Config']['Panel'], S['Config']['Side'], 'Target Player', 1, 5, 0),
+        ['Element'] = S['Slider'](S['Config']['Panel'], S['Config']['Side'], 'Target Player', 1, 5, 0),
         ['Callback'] = S['Funcs']['UpdateUI']
     },
 
     ['Enable'] = {
-        ['Element'] = ui['new_checkbox'](S['Config']['Panel'], S['Config']['Side'], 'Enable for Player'),
+        ['Element'] = S['Checkbox'](S['Config']['Panel'], S['Config']['Side'], 'Enable for Player'),
         ['Callback'] = function(e)
             local ply = S['Funcs']['GetTarget']()
 
@@ -215,7 +228,7 @@ S['UI'] = {
     },
 
     ['Prime'] = {
-        ['Element'] = ui['new_checkbox'](S['Config']['Panel'], S['Config']['Side'], 'Prime Status'),
+        ['Element'] = S['Checkbox'](S['Config']['Panel'], S['Config']['Side'], 'Prime Status'),
         ['Callback'] = function(e)
             local ply = S['Funcs']['GetTarget']()
 
@@ -228,7 +241,7 @@ S['UI'] = {
     },
 
     ['Rank'] = {
-        ['Element'] = ui['new_combobox'](S['Config']['Panel'], S['Config']['Side'], 'Modify Rank', S['Data']['ComboRanks']),
+        ['Element'] = S['Combobox'](S['Config']['Panel'], S['Config']['Side'], 'Modify Rank', S['Data']['ComboRanks']),
         ['Callback'] = function(e)
             local ply = S['Funcs']['GetTarget']()
 
@@ -241,7 +254,7 @@ S['UI'] = {
     },
 
     ['Level'] = {
-        ['Element'] = ui['new_slider'](S['Config']['Panel'], S['Config']['Side'], 'Modify Level', -1, 10000, -1),
+        ['Element'] = S['Slider'](S['Config']['Panel'], S['Config']['Side'], 'Modify Level', -1, 10000, -1),
         ['Callback'] = function(e)
             local ply = S['Funcs']['GetTarget']()
 
@@ -254,7 +267,7 @@ S['UI'] = {
     },
 
     ['Colour'] = {
-        ['Element'] = ui['new_combobox'](S['Config']['Panel'], S['Config']['Side'], 'Modify Colour', {'-', 'Yellow', 'Purple', 'Green', 'Blue', 'Orange'}),
+        ['Element'] = S['Combobox'](S['Config']['Panel'], S['Config']['Side'], 'Modify Colour', {'-', 'Yellow', 'Purple', 'Green', 'Blue', 'Orange'}),
         ['Callback'] = function(e)
             local ply = S['Funcs']['GetTarget']()
 
@@ -272,7 +285,7 @@ S['UI'] = {
     },
 
     ['Medal'] = {
-        ['Element'] = ui['new_textbox'](S['Config']['Panel'], S['Config']['Side'], 'Modify Medal', ''),
+        ['Element'] = S['Textbox'](S['Config']['Panel'], S['Config']['Side'], 'Modify Medal', ''),
         ['Callback'] = function(e)
             local ply = S['Funcs']['GetTarget']()
             local medal = ui['get'](e)
@@ -286,20 +299,20 @@ S['UI'] = {
     },
 
     ['Commend'] = {
-        ['Element'] = ui['new_combobox'](S['Config']['Panel'], S['Config']['Side'], 'Commend Type', {'Friendly', 'Teacher', 'Leader'}),
+        ['Element'] = S['Combobox'](S['Config']['Panel'], S['Config']['Side'], 'Commend Type', {'Friendly', 'Teacher', 'Leader'}),
         ['Callback'] = function(e)
             local ply = S['Funcs']['GetTarget']()
             local commendType = ui['get'](e)
             local commends = ui['get'](S['UI']['Amt']['Element'])
 
             if (ply['Commends'][commendType] ~= commends) then
-                ui['set'](S['UI']['Amt']['Element'], ply['Commends'][commendType])
+                S['Set'](S['UI']['Amt']['Element'], ply['Commends'][commendType])
             end
         end
     },
 
     ['Amt'] = {
-        ['Element'] = ui['new_slider'](S['Config']['Panel'], S['Config']['Side'], 'Modify Commends', -10000, 10000, -1),
+        ['Element'] = S['Slider'](S['Config']['Panel'], S['Config']['Side'], 'Modify Commends', -10000, 10000, -1),
         ['Callback'] = function(e)
             local ply = S['Funcs']['GetTarget']()
             local amt = ui['get'](e)
@@ -314,7 +327,7 @@ S['UI'] = {
     },
 
     ['Update Medal'] = {
-        ['Element'] = ui['new_button'](S['Config']['Panel'], S['Config']['Side'], 'Update Medal', function(e) return end),
+        ['Element'] = S['Button'](S['Config']['Panel'], S['Config']['Side'], 'Update Medal', function(e) return end),
         ['Callback'] = function(e)
             local ply = S['Funcs']['GetTarget']()
             local medal = ui['get'](S['UI']['Medal']['Element'])
@@ -328,11 +341,11 @@ S['UI'] = {
     },
 
     ['Rand Stats'] = {
-        ['Element'] = ui['new_button'](S['Config']['Panel'], S['Config']['Side'], 'Randomise All Player Stats', function(e) return end),
+        ['Element'] = S['Button'](S['Config']['Panel'], S['Config']['Side'], 'Randomise All Player Stats', function(e) return end),
         ['Callback'] = function(e)
             local comboRanks = S['Data']['ComboRanks']
             local comboCols = S['Data']['ComboColours']
-            local rand = client['random_int']
+            local rand = S['RandInt']
 
             for _, v in pairs(S['Data']['PlayerData']) do
                 v['Rank'] = comboRanks[rand(1, #comboRanks)]
@@ -357,11 +370,11 @@ S['UI'] = {
 S['Funcs']['BuildJS']()
 S['Funcs']['UpdateUI']()
 
-client['set_event_callback']('shutdown', function()
+S['RegisterEvent']('shutdown', function()
     events.stop(events.get_event())
 end)
 
-client['set_event_callback']('console_input', function(text)
+S['RegisterEvent']('console_input', function(text)
     if (text:sub(1, 10) == 'medal_list') then
         print('List of medals: https://tf2b.com/itemlist.php?gid=730')
         return true
@@ -372,15 +385,15 @@ for _, entry in pairs(S['UI']) do
     if (entry['Hidden']) then
         for _, hidden in pairs(entry['Hidden']) do
             if (type(hidden) == 'table') then
-                ui['set_callback'](hidden['Element'], hidden['Callback'])
-                ui['set_visible'](hidden['Element'], false)
+                S['SetCallback'](hidden['Element'], hidden['Callback'])
+                S['Visible'](hidden['Element'], false)
             else
-                ui['set_visible'](hidden, false)
+                S['Visible'](hidden, false)
             end
         end
     else
-        ui['set_visible'](entry['Element'], true)
+        S['Visible'](entry['Element'], true)
     end
 
-    ui['set_callback'](entry['Element'], entry['Callback'])
+    S['SetCallback'](entry['Element'], entry['Callback'])
 end
