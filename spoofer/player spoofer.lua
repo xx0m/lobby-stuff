@@ -1,5 +1,5 @@
 local js = panorama['open']()
-local MyPersonaAPI, LobbyAPI, PartyListAPI, FriendsListAPI = js['MyPersonaAPI'], js['LobbyAPI'], js['PartyListAPI'], js['FriendsListAPI']
+local MyPersonaAPI, LobbyAPI, PartyListAPI, FriendsListAPI, GameStateAPI = js['MyPersonaAPI'], js['LobbyAPI'], js['PartyListAPI'], js['FriendsListAPI'], js['GameStateAPI']
 local S = {}
 
 S['Get'] = ui['get']
@@ -21,14 +21,16 @@ if (not LobbyAPI.IsSessionActive()) then
 	PartyListAPI.SessionCommand('MakeOnline', '')
 end
 
-local events = panorama['loadstring']([[
-	var waitForPlayerUpdateEventHandler = $.RegisterForUnhandledEvent('PanoramaComponent_Lobby_PlayerUpdated', function(xuid) {});
+panorama['loadstring']([[
+	var waitForPlayerUpdateEventHandler = $.RegisterForUnhandledEvent('PanoramaComponent_Lobby_PlayerUpdated', function() {});
+]])()
 
+local events = panorama['loadstring']([[
 	return {
 		start: function(message) {
 			PartyListAPI.UpdateSessionSettings(message);
 
-			waitForPlayerUpdateEventHandler = $.RegisterForUnhandledEvent('PanoramaComponent_Lobby_PlayerUpdated', function(xuid) {
+			waitForPlayerUpdateEventHandler = $.RegisterForUnhandledEvent('PanoramaComponent_Lobby_PlayerUpdated', function() {
 				PartyListAPI.UpdateSessionSettings(message);
 			});
 		},
@@ -36,10 +38,12 @@ local events = panorama['loadstring']([[
 			$.UnregisterForUnhandledEvent('PanoramaComponent_Lobby_MatchmakingSessionUpdate', event);
 		},
 		get_event: function() {
-			return waitForPlayerUpdateEventHandler
+			return waitForPlayerUpdateEventHandler;
 		}
 	}
 ]])()
+
+events.start('')
 
 S['Config'] = {
 	['Panel'] = 'LUA',
@@ -173,39 +177,43 @@ S['Funcs'] = {
 	['BuildJS'] = function()
 		local updateMsg = ''
 
-		events.stop(events.get_event())
+		if (not GameStateAPI.IsLocalPlayerPlayingMatch()) then
+			events.stop(events.get_event())
 
-		for i = 0, #S['Data']['PlayerData'] do
-			local ply = S['Data']['PlayerData'][i]
+			for i = 0, #S['Data']['PlayerData'] do
+				local ply = S['Data']['PlayerData'][i]
 
-			if (ply['Enable']) then
-				if (PartyListAPI.GetCount() > 1 and PartyListAPI.GetXuidByIndex(i) ~= 0) then
-					local machineName = string.format('Update/Members/machine%s/player0/game/', i)
+				if (ply['Enable']) then
+					if (PartyListAPI.GetCount() > 1 and PartyListAPI.GetXuidByIndex(i) ~= 0) then
+						local machineName = string.format('Update/Members/machine%s/player0/game/', i)
 
-					if (ply['Rank'] ~= '-') then
-						updateMsg = string.format('%s%sranking %s ', updateMsg, machineName, S['Data']['Ranks'][ply['Rank']])
-					end
+						if (ply['Rank'] ~= '-') then
+							updateMsg = string.format('%s%sranking %s ', updateMsg, machineName, S['Data']['Ranks'][ply['Rank']])
+						end
 
-					if (ply['Level'] ~= '-') then
-						updateMsg = string.format('%s%slevel %s ', updateMsg, machineName, S['Data']['Ranks'][ply['Rank']])
-					end
+						if (ply['Level'] ~= '-') then
+							updateMsg = string.format('%s%slevel %s ', updateMsg, machineName, S['Data']['Ranks'][ply['Rank']])
+						end
 
-					updateMsg = string.format('%s%sprime %s', updateMsg, machineName, (ply['Prime'] and '1' or '0'))
+						updateMsg = string.format('%s%sprime %s', updateMsg, machineName, (ply['Prime'] and '1' or '0'))
 
-					if (ply['Medal'] ~= nil) then
-						updateMsg = string.format('%s%smedals [!%s][^%s] ', updateMsg, machineName, ply['Medal'], ply['Medal'])
-					end
+						if (ply['Medal'] ~= nil) then
+							updateMsg = string.format('%s%smedals [!%s][^%s] ', updateMsg, machineName, ply['Medal'], ply['Medal'])
+						end
 
-					updateMsg = string.format('%s%scommends [f%s][t%s][l%s] ', updateMsg, machineName, ply['Commends']['Friendly'], ply['Commends']['Teacher']. ply['Commends']['Leader']);
+						updateMsg = string.format('%s%scommends [f%s][t%s][l%s] ', updateMsg, machineName, ply['Commends']['Friendly'], ply['Commends']['Teacher']. ply['Commends']['Leader']);
 
-					if (ply['Colour'] ~= '-') then
-						updateMsg = string.format('%s%steamcolor %s ', updateMsg, machineName, S['Data']['Colours'][ply['Colour']])
+						if (ply['Colour'] ~= '-') then
+							updateMsg = string.format('%s%steamcolor %s ', updateMsg, machineName, S['Data']['Colours'][ply['Colour']])
+						end
 					end
 				end
 			end
-		end
 
-		events.start(updateMsg)
+			events.start(updateMsg)
+		else
+			events.stop(events.get_event())
+		end
 	end
 }
 
