@@ -3,9 +3,18 @@ local MyPersonaAPI, LobbyAPI, PartyListAPI, FriendsListAPI = js['MyPersonaAPI'],
 local L = {}
 
 L['Get'] = ui['get']
+L['Set'] = ui['set']
 L['Delay'] = client['delay_call']
 L['RandInt'] = client['random_int']
 L['RegisterEvent'] = client['set_event_callback']
+L['SetVisible'] = ui['set_visible']
+L['SetCallback'] = ui['set_callback']
+L['Button'] = ui['new_button']
+L['Slider'] = ui['new_slider']
+L['Combobox'] = ui['new_combobox']
+L['Textbox'] = ui['new_textbox']
+L['Checkbox'] = ui['new_checkbox']
+L['ListBox'] = ui['new_listbox']
 
 if (not LobbyAPI.IsSessionActive()) then
     LobbyAPI.CreateSession()
@@ -296,11 +305,11 @@ L['Funcs'] = {
 
         if (L['Get'](L['UI']['LoopMessages']['Element']) and not L['Funcs']['table.HasValue'](L['Data']['BadMessages'], msgType)) then
             for i = 1, L['Get'](baseLoop['Amt']) do
-                L['Funcs']['ExecuteMessage']()
-
                 if (not L['Get'](L['UI']['LoopMessages']['Element'])) then
                     break
                 end
+
+                L['Funcs']['ExecuteMessage']()
             end
 
             L['Delay'](L['Get'](baseLoop['Delay']) / 1000, L['Funcs']['HandleMessage'])
@@ -312,19 +321,19 @@ L['Funcs'] = {
 
 L['UI'] = {
     ['Target'] = {
-        ['Element'] = ui['new_slider'](L['Config']['Panel'], L['Config']['Side'], 'Target Player', 1, 5, 0),
+        ['Element'] = L['Slider'](L['Config']['Panel'], L['Config']['Side'], 'Target Player', 1, 5, 0),
         ['Callback'] = function(e)
-            ui['set'](L['UI']['TrustMsgOnSearch']['Hidden']['Message']['Element'], L['Data']['Targets'][L['Get'](e) - 1])
+            L['Set'](L['UI']['TrustMsgOnSearch']['Hidden']['Message']['Element'], L['Data']['Targets'][L['Get'](e) - 1])
 
             L['Funcs']['BuildFuncs']()
         end
     },
 
     ['TrustMsgOnSearch'] = {
-        ['Element'] = ui['new_checkbox'](L['Config']['Panel'], L['Config']['Side'], 'Trust Message on Search'),
+        ['Element'] = L['Checkbox'](L['Config']['Panel'], L['Config']['Side'], 'Trust Message on Search'),
         ['Hidden'] = {
             ['Message'] = {
-                ['Element'] = ui['new_combobox'](L['Config']['Panel'], L['Config']['Side'], 'Trust Message', {'-', 'Yellow', 'Red'}),
+                ['Element'] = L['Combobox'](L['Config']['Panel'], L['Config']['Side'], 'Trust Message', {'-', 'Yellow', 'Red'}),
                 ['Callback'] = function(e)
                     local target = L['Get'](L['UI']['Target']['Element'])
 
@@ -337,25 +346,25 @@ L['UI'] = {
             }
         },
         ['Callback'] = function(e)
-            ui['set_visible'](L['UI']['TrustMsgOnSearch']['Hidden']['Message']['Element'], L['Get'](e))
+            L['SetVisible'](L['UI']['TrustMsgOnSearch']['Hidden']['Message']['Element'], L['Get'](e))
 
             L['Funcs']['BuildFuncs']()
         end
     },
     
     ['StopQueue'] = {
-        ['Element'] = ui['new_checkbox'](L['Config']['Panel'], L['Config']['Side'], 'Auto Stop Queue'),
+        ['Element'] = L['Checkbox'](L['Config']['Panel'], L['Config']['Side'], 'Auto Stop Queue'),
         ['Hidden'] = {
             ['Silent'] = {
-                ['Element'] = ui['new_checkbox'](L['Config']['Panel'], L['Config']['Side'], 'Silent'),
+                ['Element'] = L['Checkbox'](L['Config']['Panel'], L['Config']['Side'], 'Silent'),
                 ['Callback'] = function(e)
-                    ui['set_visible'](L['UI']['StopQueue']['Hidden']['Error']['Element'], not L['Get'](e))
+                    L['SetVisible'](L['UI']['StopQueue']['Hidden']['Error']['Element'], not L['Get'](e))
 
                     L['Funcs']['BuildFuncs']()
                 end
             },
             ['Error'] = {
-                ['Element'] = ui['new_combobox'](L['Config']['Panel'], L['Config']['Side'], 'Queue Error', L['Chat']['QueueErrors']),
+                ['Element'] = L['Combobox'](L['Config']['Panel'], L['Config']['Side'], 'Queue Error', L['Chat']['QueueErrors']),
                 ['Callback'] = function(e)
                     L['Funcs']['BuildFuncs']()
                 end
@@ -365,51 +374,51 @@ L['UI'] = {
             local bool = L['Get'](e)
             local base = L['UI']['StopQueue']['Hidden']
 
-            ui['set_visible'](base['Silent']['Element'], bool)
-            ui['set_visible'](base['Error']['Element'], bool)
+            L['SetVisible'](base['Silent']['Element'], bool)
+            L['SetVisible'](base['Error']['Element'], bool)
 
             L['Funcs']['BuildFuncs']()
         end
     },
 
     ['LoopMessages'] = {
-        ['Element'] = ui['new_checkbox'](L['Config']['Panel'], L['Config']['Side'], 'Loop Messages'),
+        ['Element'] = L['Checkbox'](L['Config']['Panel'], L['Config']['Side'], 'Loop Messages'),
         ['Hidden'] = {
-            ['Delay'] = ui['new_slider'](L['Config']['Panel'], L['Config']['Side'], 'Spam Delay', 1, 1000, 250, true, 'ms'),
-            ['Amt'] = ui['new_slider'](L['Config']['Panel'], L['Config']['Side'], 'Spam Per Loop', 1, 200, 1, true)
+            ['Delay'] = L['Slider'](L['Config']['Panel'], L['Config']['Side'], 'Spam Delay', 1, 1000, 250, true, 'ms'),
+            ['Amt'] = L['Slider'](L['Config']['Panel'], L['Config']['Side'], 'Spam Per Loop', 1, 200, 1, true)
         },
         ['Callback'] = function(e)
             local bool = L['Get'](e)
             local base = L['UI']['LoopMessages']['Hidden']
 
-            ui['set_visible'](base['Delay'], bool)
-            ui['set_visible'](base['Amt'], bool)
+            L['SetVisible'](base['Delay'], bool)
+            L['SetVisible'](base['Amt'], bool)
         end
     },
 
     ['MessageType'] = {
-        ['Element'] = ui['new_combobox'](L['Config']['Panel'], L['Config']['Side'], 'Message Type', L['Chat']['MessageTypes']),
+        ['Element'] = L['Combobox'](L['Config']['Panel'], L['Config']['Side'], 'Message Type', L['Chat']['MessageTypes']),
         ['Hidden'] = {
-            ['Text'] = ui['new_textbox'](L['Config']['Panel'], L['Config']['Side'], 'Message Text'),
-            ['Colour'] = ui['new_combobox'](L['Config']['Panel'], L['Config']['Side'], 'Message Colour', L['Chat']['Colours']),
+            ['Text'] = L['Textbox'](L['Config']['Panel'], L['Config']['Side'], 'Message Text'),
+            ['Colour'] = L['Combobox'](L['Config']['Panel'], L['Config']['Side'], 'Message Colour', L['Chat']['Colours']),
             ['RandErr'] = {
-                ['Element'] = ui['new_checkbox'](L['Config']['Panel'], L['Config']['Side'], 'Random Error'),
-                ['Callback'] = function(e) ui['set_visible'](L['UI']['MessageType']['Hidden']['ErrorList'], not L['Get'](e)) L['Funcs']['BuildFuncs']() end
+                ['Element'] = L['Checkbox'](L['Config']['Panel'], L['Config']['Side'], 'Random Error'),
+                ['Callback'] = function(e) L['SetVisible'](L['UI']['MessageType']['Hidden']['ErrorList'], not L['Get'](e)) L['Funcs']['BuildFuncs']() end
             },
-            ['ErrorList'] = ui['new_listbox'](L['Config']['Panel'], L['Config']['Side'], 'Error List', L['Chat']['Errors'])
+            ['ErrorList'] = L['ListBox'](L['Config']['Panel'], L['Config']['Side'], 'Error List', L['Chat']['Errors'])
         },
         ['Callback'] = function(e)
             local bool = (L['Get'](e) == 'Error')
             local base = L['UI']['MessageType']['Hidden']
 
-            ui['set_visible'](base['Text'], (L['Get'](e) == 'Chat'))
-            ui['set_visible'](base['Colour'], bool)
-            ui['set_visible'](base['RandErr']['Element'], bool)
+            L['SetVisible'](base['Text'], (L['Get'](e) == 'Chat'))
+            L['SetVisible'](base['Colour'], bool)
+            L['SetVisible'](base['RandErr']['Element'], bool)
 
             if (L['Get'](base['RandErr']['Element'])) then
-                ui['set_visible'](base['ErrorList'], not L['Get'](base['RandErr']['Element']))
+                L['SetVisible'](base['ErrorList'], not L['Get'](base['RandErr']['Element']))
             else
-                ui['set_visible'](base['ErrorList'], bool)
+                L['SetVisible'](base['ErrorList'], bool)
             end
 
             L['Funcs']['BuildFuncs']()
@@ -417,12 +426,12 @@ L['UI'] = {
     },
 
     ['Close Windows'] = {
-        ['Element'] = ui['new_button'](L['Config']['Panel'], L['Config']['Side'], 'Force Close Windows', function(e) return end),
+        ['Element'] = L['Button'](L['Config']['Panel'], L['Config']['Side'], 'Force Close Windows', function(e) return end),
         ['Callback'] = L['Funcs']['ClearPopups']
     },
 
     ['Execute Message'] = {
-        ['Element'] = ui['new_button'](L['Config']['Panel'], L['Config']['Side'], 'Execute Message', function(e) return end),
+        ['Element'] = L['Button'](L['Config']['Panel'], L['Config']['Side'], 'Execute Message', function(e) return end),
         ['Callback'] = L['Funcs']['HandleMessage']
     }
 }
@@ -437,15 +446,15 @@ for _, entry in pairs(L['UI']) do
     if (entry['Hidden']) then
         for _, hidden in pairs(entry['Hidden']) do
             if (type(hidden) == 'table') then
-                ui['set_callback'](hidden['Element'], hidden['Callback'])
-                ui['set_visible'](hidden['Element'], false)
+                L['SetCallback'](hidden['Element'], hidden['Callback'])
+                L['SetVisible'](hidden['Element'], false)
             else
-                ui['set_visible'](hidden, false)
+                L['SetVisible'](hidden, false)
             end
         end
     else
-        ui['set_visible'](entry['Element'], true)
+        L['SetVisible'](entry['Element'], true)
     end
 
-    ui['set_callback'](entry['Element'], entry['Callback'])
+    L['SetCallback'](entry['Element'], entry['Callback'])
 end
