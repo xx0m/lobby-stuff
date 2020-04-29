@@ -14,6 +14,7 @@ S['Slider'] = ui['new_slider']
 S['Combobox'] = ui['new_combobox']
 S['Textbox'] = ui['new_textbox']
 S['Checkbox'] = ui['new_checkbox']
+S['Label'] = ui['new_label']
 
 if (not LobbyAPI.IsSessionActive()) then
     LobbyAPI.CreateSession()
@@ -280,7 +281,7 @@ S['UI'] = {
     },
 
     ['lblMedal'] = {
-        ['Element'] = ui['new_label'](S['Config']['Panel'], S['Config']['Side'], 'Modify Medal'),
+        ['Element'] = S['Label'](S['Config']['Panel'], S['Config']['Side'], 'Modify Medal'),
         ['Callback'] = function(e) end
     },
 
