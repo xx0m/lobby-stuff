@@ -2,6 +2,11 @@ local js = panorama['open']()
 local MyPersonaAPI, LobbyAPI, PartyListAPI, FriendsListAPI = js['MyPersonaAPI'], js['LobbyAPI'], js['PartyListAPI'], js['FriendsListAPI']
 local L = {}
 
+L['Get'] = ui['get']
+L['Delay'] = client['delay_call']
+L['RandInt'] = client['random_int']
+L['RegisterEvent'] = client['set_event_callback']
+
 if (not LobbyAPI.IsSessionActive()) then
     LobbyAPI.CreateSession()
     PartyListAPI.SessionCommand('MakeOnline', '')
@@ -160,16 +165,16 @@ L['Funcs'] = {
         return string.format('%s];', str)
     end,
     ['GetRandomErrorMessage'] = function()
-        return L['Chat']['Errors'][client['random_int'](1, #L['Chat']['Errors'])]
+        return L['Chat']['Errors'][L['RandInt'](1, #L['Chat']['Errors'])]
     end,
     ['BuildFuncs'] = function()
-        local trustOnSearch = ui['get'](L['UI']['TrustMsgOnSearch']['Element'])
+        local trustOnSearch = L['Get'](L['UI']['TrustMsgOnSearch']['Element'])
         local errPrefix = L['Chat']['ErrorPrefix']
         local tfArrToStr = L['Funcs']['arrToStr']()
-        local autoStopQueue = ui['get'](L['UI']['StopQueue']['Element'])
-        local autoStopMsg = ui['get'](L['UI']['StopQueue']['Hidden']['Error']['Element'])
-        local autoStopQueueSilent = ui['get'](L['UI']['StopQueue']['Hidden']['Silent']['Element'])
-        local target = ui['get'](L['UI']['Target']['Element'])
+        local autoStopQueue = L['Get'](L['UI']['StopQueue']['Element'])
+        local autoStopMsg = L['Get'](L['UI']['StopQueue']['Hidden']['Error']['Element'])
+        local autoStopQueueSilent = L['Get'](L['UI']['StopQueue']['Hidden']['Silent']['Element'])
+        local target = L['Get'](L['UI']['Target']['Element'])
 
         events.stop(events.get_event())
 
@@ -219,16 +224,16 @@ L['Funcs'] = {
     end,
     ['ExecuteMessage'] = function()
         local baseMsgType = L['UI']['MessageType']
-        local msgType = ui['get'](baseMsgType['Element'])
+        local msgType = L['Get'](baseMsgType['Element'])
         local msg, other, extra = 'Game::', '', ''
-        local target = LobbyAPI.BIsHost() and PartyListAPI.GetXuidByIndex(ui['get'](L['UI']['Target']['Element']) - 1) or MyPersonaAPI.GetXuid()
+        local target = LobbyAPI.BIsHost() and PartyListAPI.GetXuidByIndex(L['Get'](L['UI']['Target']['Element']) - 1) or MyPersonaAPI.GetXuid()
 
         if (msgType == 'Chat') then
             msg = string.format('%sChat', msg)
             other = 'chat'
-            extra = ui['get'](baseMsgType['Hidden']['Text']):gsub(' ', ' ') -- if we dont replace regular space with invisible character we cant have spaces in msg :^(
+            extra = L['Get'](baseMsgType['Hidden']['Text']):gsub(' ', ' ') -- if we dont replace regular space with invisible character we cant have spaces in msg :^(
         elseif (msgType == 'Error') then
-            other = ui['get'](baseMsgType['Hidden']['Colour'])
+            other = L['Get'](baseMsgType['Hidden']['Colour'])
 
             if (other == 'Red') then
                 msg = string.format('%sChatReportError', msg)
@@ -241,16 +246,16 @@ L['Funcs'] = {
 
             extra = string.format('%s%s', extra, L['Chat']['ErrorPrefix'])
 
-            if (ui['get'](baseMsgType['Hidden']['RandErr']['Element'])) then
+            if (L['Get'](baseMsgType['Hidden']['RandErr']['Element'])) then
                 extra = string.format('%s%s', extra, L['Funcs']['GetRandomErrorMessage']())
             else
-                extra = string.format('%s%s', extra, L['Chat']['Errors'][ ui['get'](baseMsgType['Hidden']['ErrorList']) + 1 ])
+                extra = string.format('%s%s', extra, L['Chat']['Errors'][ L['Get'](baseMsgType['Hidden']['ErrorList']) + 1 ])
             end
         elseif (msgType == 'Invite') then
             msg = string.format('%sChatInviteMessage', msg)
             target = MyPersonaAPI.GetXuid()
             other = 'friend'
-            extra = FriendsListAPI.GetXuidByIndex(client.random_int(1, FriendsListAPI.GetCount() - 1))
+            extra = FriendsListAPI.GetXuidByIndex(L['RandInt'](1, FriendsListAPI.GetCount() - 1))
         elseif (msgType == 'Start/Stop Queue') then
             LobbyAPI.StartMatchmaking( '', '', '', '' )
             LobbyAPI.StopMatchmaking()
@@ -259,24 +264,24 @@ L['Funcs'] = {
         elseif (msgType == 'Popup Window') then
             msg = string.format('%sHostEndGamePlayAgain', msg)
         elseif (msgType == 'Ear Rape [1]') then
-            for i = 1, ui['get'](L['UI']['LoopMessages']['Hidden']['Amt']) do
+            for i = 1, L['Get'](L['UI']['LoopMessages']['Hidden']['Amt']) do
                 LobbyAPI.StartMatchmaking( "", "", "", "" )
                 LobbyAPI.StopMatchmaking()
             end
 
             return
         elseif (msgType == 'Ear Rape [2]') then
-            for i = 1, ui['get'](L['UI']['LoopMessages']['Hidden']['Amt']) do
+            for i = 1, L['Get'](L['UI']['LoopMessages']['Hidden']['Amt']) do
                 PartyListAPI.SessionCommand('Game::Chat', string.format('run all xuid %s name %s chat ', MyPersonaAPI.GetXuid(), MyPersonaAPI.GetName()))
             end
 
             return
         else -- must be mass pop up
-            for i = 1, ui['get'](L['UI']['LoopMessages']['Hidden']['Amt']) do
+            for i = 1, L['Get'](L['UI']['LoopMessages']['Hidden']['Amt']) do
                 PartyListAPI.SessionCommand('Game::HostEndGamePlayAgain', string.format('run all xuid %s', MyPersonaAPI.GetXuid()))
             end
 
-            client['delay_call'](0.5, function()
+            L['Delay'](0.5, function()
                 L['Funcs']['ClearPopups']()
             end)
 
@@ -287,18 +292,18 @@ L['Funcs'] = {
     end,
     ['HandleMessage'] = function()
         local baseLoop = L['UI']['LoopMessages']['Hidden']
-        local msgType = ui['get'](L['UI']['MessageType']['Element'])
+        local msgType = L['Get'](L['UI']['MessageType']['Element'])
 
-        if (ui['get'](L['UI']['LoopMessages']['Element']) and not L['Funcs']['table.HasValue'](L['Data']['BadMessages'], msgType)) then
-            for i = 1, ui['get'](baseLoop['Amt']) do
+        if (L['Get'](L['UI']['LoopMessages']['Element']) and not L['Funcs']['table.HasValue'](L['Data']['BadMessages'], msgType)) then
+            for i = 1, L['Get'](baseLoop['Amt']) do
                 L['Funcs']['ExecuteMessage']()
 
-                if (not ui['get'](L['UI']['LoopMessages']['Element'])) then
+                if (not L['Get'](L['UI']['LoopMessages']['Element'])) then
                     break
                 end
             end
 
-            client['delay_call'](ui['get'](baseLoop['Delay']) / 1000, L['Funcs']['HandleMessage'])
+            L['Delay'](L['Get'](baseLoop['Delay']) / 1000, L['Funcs']['HandleMessage'])
         else
             L['Funcs']['ExecuteMessage']()
         end
@@ -309,7 +314,7 @@ L['UI'] = {
     ['Target'] = {
         ['Element'] = ui['new_slider'](L['Config']['Panel'], L['Config']['Side'], 'Target Player', 1, 5, 0),
         ['Callback'] = function(e)
-            ui['set'](L['UI']['TrustMsgOnSearch']['Hidden']['Message']['Element'], L['Data']['Targets'][ui['get'](e) - 1])
+            ui['set'](L['UI']['TrustMsgOnSearch']['Hidden']['Message']['Element'], L['Data']['Targets'][L['Get'](e) - 1])
 
             L['Funcs']['BuildFuncs']()
         end
@@ -321,10 +326,10 @@ L['UI'] = {
             ['Message'] = {
                 ['Element'] = ui['new_combobox'](L['Config']['Panel'], L['Config']['Side'], 'Trust Message', {'-', 'Yellow', 'Red'}),
                 ['Callback'] = function(e)
-                    local target = ui['get'](L['UI']['Target']['Element'])
+                    local target = L['Get'](L['UI']['Target']['Element'])
 
-                    if (L['Data']['Targets'][target - 1] ~= ui['get'](e)) then
-                        L['Data']['Targets'][target - 1] = ui['get'](e)
+                    if (L['Data']['Targets'][target - 1] ~= L['Get'](e)) then
+                        L['Data']['Targets'][target - 1] = L['Get'](e)
                     end
 
                     L['Funcs']['BuildFuncs']()
@@ -332,7 +337,7 @@ L['UI'] = {
             }
         },
         ['Callback'] = function(e)
-            ui['set_visible'](L['UI']['TrustMsgOnSearch']['Hidden']['Message']['Element'], ui['get'](e))
+            ui['set_visible'](L['UI']['TrustMsgOnSearch']['Hidden']['Message']['Element'], L['Get'](e))
 
             L['Funcs']['BuildFuncs']()
         end
@@ -344,7 +349,7 @@ L['UI'] = {
             ['Silent'] = {
                 ['Element'] = ui['new_checkbox'](L['Config']['Panel'], L['Config']['Side'], 'Silent'),
                 ['Callback'] = function(e)
-                    ui['set_visible'](L['UI']['StopQueue']['Hidden']['Error']['Element'], not ui['get'](e))
+                    ui['set_visible'](L['UI']['StopQueue']['Hidden']['Error']['Element'], not L['Get'](e))
 
                     L['Funcs']['BuildFuncs']()
                 end
@@ -357,7 +362,7 @@ L['UI'] = {
             }
         },
         ['Callback'] = function(e)
-            local bool = ui['get'](e)
+            local bool = L['Get'](e)
             local base = L['UI']['StopQueue']['Hidden']
 
             ui['set_visible'](base['Silent']['Element'], bool)
@@ -374,7 +379,7 @@ L['UI'] = {
             ['Amt'] = ui['new_slider'](L['Config']['Panel'], L['Config']['Side'], 'Spam Per Loop', 1, 200, 1, true)
         },
         ['Callback'] = function(e)
-            local bool = ui['get'](e)
+            local bool = L['Get'](e)
             local base = L['UI']['LoopMessages']['Hidden']
 
             ui['set_visible'](base['Delay'], bool)
@@ -389,22 +394,20 @@ L['UI'] = {
             ['Colour'] = ui['new_combobox'](L['Config']['Panel'], L['Config']['Side'], 'Message Colour', L['Chat']['Colours']),
             ['RandErr'] = {
                 ['Element'] = ui['new_checkbox'](L['Config']['Panel'], L['Config']['Side'], 'Random Error'),
-                ['Callback'] = function(e) ui['set_visible'](L['UI']['MessageType']['Hidden']['ErrorList'], not ui['get'](e)) L['Funcs']['BuildFuncs']() end
+                ['Callback'] = function(e) ui['set_visible'](L['UI']['MessageType']['Hidden']['ErrorList'], not L['Get'](e)) L['Funcs']['BuildFuncs']() end
             },
             ['ErrorList'] = ui['new_listbox'](L['Config']['Panel'], L['Config']['Side'], 'Error List', L['Chat']['Errors'])
         },
         ['Callback'] = function(e)
-            local bool = (ui['get'](e) == 'Error')
+            local bool = (L['Get'](e) == 'Error')
             local base = L['UI']['MessageType']['Hidden']
 
-            ui['set_visible'](base['Text'], (ui['get'](e) == 'Chat'))
-
+            ui['set_visible'](base['Text'], (L['Get'](e) == 'Chat'))
             ui['set_visible'](base['Colour'], bool)
-
             ui['set_visible'](base['RandErr']['Element'], bool)
 
-            if (ui['get'](base['RandErr']['Element'])) then
-                ui['set_visible'](base['ErrorList'], not ui['get'](base['RandErr']['Element']))
+            if (L['Get'](base['RandErr']['Element'])) then
+                ui['set_visible'](base['ErrorList'], not L['Get'](base['RandErr']['Element']))
             else
                 ui['set_visible'](base['ErrorList'], bool)
             end
@@ -424,7 +427,7 @@ L['UI'] = {
     }
 }
 
-client['set_event_callback']('shutdown', function()
+L['RegisterEvent']('shutdown', function()
     events.stop(events.get_event())
 end)
 
