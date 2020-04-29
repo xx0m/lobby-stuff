@@ -1,5 +1,5 @@
 local js = panorama['open']()
-local MyPersonaAPI, LobbyAPI, PartyListAPI, FriendsListAPI, GameStateAPI = js['MyPersonaAPI'], js['LobbyAPI'], js['PartyListAPI'], js['FriendsListAPI'], js['GameStateAPI']
+local LobbyAPI, PartyListAPI, GameStateAPI = js['LobbyAPI'], js['PartyListAPI'], js['GameStateAPI']
 local S = {}
 
 S['Get'] = ui['get']
@@ -202,7 +202,7 @@ S['Funcs'] = {
 							updateMsg = string.format('%s%smedals [!%s][^%s] ', updateMsg, machineName, ply['Medal'], ply['Medal'])
 						end
 
-						updateMsg = string.format('%s%scommends [f%s][t%s][l%s] ', updateMsg, machineName, ply['Commends']['Friendly'], ply['Commends']['Teacher']. ply['Commends']['Leader']);
+						updateMsg = string.format('%s%scommends [f%s][t%s][l%s] ', updateMsg, machineName, ply['Commends']['Friendly'], ply['Commends']['Teacher'], ply['Commends']['Leader']);
 
 						if (ply['Colour'] ~= '-') then
 							updateMsg = string.format('%s%steamcolor %s ', updateMsg, machineName, S['Data']['Colours'][ply['Colour']])
